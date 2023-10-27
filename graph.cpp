@@ -98,6 +98,8 @@ void Graph::augment_matching(Graph::NodeId x_id, Graph::NodeId y_id) {
         node.blossom_root = node.id;
         node.scanned = false;
     }
+    matching_size += 1;
+    std::cout << "Matching Size = " << matching_size << std::endl;
 }
 
 std::vector<Graph::NodeId> Graph::get_path(Graph::NodeId node) {

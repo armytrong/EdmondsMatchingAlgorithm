@@ -52,7 +52,7 @@ private:
     get_first_path_intersection(std::vector<NodeId> const& path_1, std::vector<NodeId> const& path_2);
 
 public:
-
+    unsigned matching_size = 0;
     std::vector<Node> nodes;
 };
 
