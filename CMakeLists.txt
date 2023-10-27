@@ -9,4 +9,6 @@ add_executable(EdmondsMatchingAlgorithm
         graph.cpp
         graph.h
         main.cpp
+        dimacs_file_parser.cpp
+        dimacs_file_parser.h
 )
