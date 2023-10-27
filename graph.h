@@ -12,11 +12,11 @@ class Graph {
 public:
     using NodeId = unsigned long;
     struct Node {
-        explicit Node(NodeId id) : id(id), phi(id), mu(id), rho(id), scanned(false){}
+        explicit Node(NodeId id) : id(id), forest_neighbor(id), matching_neighbor(id), blossom_root(id), scanned(false){}
         NodeId const id;
-        NodeId phi;
-        NodeId mu;
-        NodeId rho;
+        NodeId forest_neighbor;
+        NodeId matching_neighbor;
+        NodeId blossom_root;
         bool scanned;
         std::vector<NodeId> neighbors;
     };
@@ -29,13 +29,12 @@ public:
     void outer_vertex_scan();
 private:
 
-    NodeId& mu(NodeId id);
-    NodeId& phi(NodeId id);
-    NodeId& rho(NodeId id);
-    [[nodiscard]] NodeId mu(NodeId id) const;
-    [[nodiscard]] NodeId phi(NodeId id) const;
-    [[nodiscard]] NodeId rho(NodeId id) const;
-
+    NodeId& matching_neighbor(NodeId id);
+    NodeId& forest_neighbor(NodeId id);
+    NodeId& blossom_root(NodeId id);
+    [[nodiscard]] NodeId matching_neighbor(NodeId id) const;
+    [[nodiscard]] NodeId forest_neighbor(NodeId id) const;
+    [[nodiscard]] NodeId blossom_root(NodeId id) const;
     void neighbor_search(NodeId x_id);
     void augment_matching(NodeId x_id, NodeId y_id);
     void shrink_blossom(NodeId x_id, NodeId y_id);
