@@ -34,6 +34,7 @@ void Graph::neighbor_search(Graph::NodeId x_id) {
             phi(y_id) = x_id;
         } else if (find_path_root(x_id) != find_path_root(y_id)) {
             augment_matching(x_id, y_id);
+            break;
         } else {
             shrink_blossom(x_id, y_id);
         }
