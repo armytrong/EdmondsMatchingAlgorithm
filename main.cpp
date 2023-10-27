@@ -20,9 +20,11 @@ int main(int argc, char** argv){
     }
     auto g = DIMACSFileParser::create_graph(file);
 
+    g.greedy_matching();
     g.outer_vertex_scan();
     std::cout << std::endl;
+
     for(auto const& node: g.nodes){
-        std::cout << "mu(" << node.id << ") = " << node.mu << std::endl;
+        std::cout << "matching_neighbor(" << node.id << ") = " << node.matching_neighbor << std::endl;
     }
 }

@@ -26,6 +26,7 @@ public:
     void add_nodes(NodeId num_nodes);
     void add_edge(NodeId a, NodeId b);
 
+    void greedy_matching();
     void outer_vertex_scan();
 private:
 

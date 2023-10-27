@@ -5,6 +5,7 @@
 #include "graph.h"
 #include <algorithm>
 #include <cassert>
+#include <iostream>
 
 void Graph::outer_vertex_scan() {
     while (auto const node_id = find_unscanned_outer_vertex()) {
@@ -184,5 +185,19 @@ void Graph::add_edge(Graph::NodeId a, Graph::NodeId b) {
 void Graph::add_nodes(Graph::NodeId num_nodes) {
     for (NodeId i = 0; i < num_nodes; i++) {
         nodes.emplace_back(nodes.size());
+    }
+}
+
+void Graph::greedy_matching() {
+    for (auto &node: nodes) {
+        if (node.matching_neighbor != node.id) { continue; }
+        for (auto neighbor_id: node.neighbors) {
+            if (matching_neighbor(neighbor_id) == neighbor_id) {
+                matching_neighbor(neighbor_id) = node.id;
+                node.matching_neighbor = neighbor_id;
+                matching_size += 1;
+                break;
+            }
+        }
     }
 }
