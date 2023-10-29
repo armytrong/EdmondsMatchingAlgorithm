@@ -28,6 +28,7 @@ public:
 
     void greedy_matching();
     void outer_vertex_scan();
+    [[nodiscard]] bool is_matching_legal() const;
 private:
 
     NodeId& matching_neighbor(NodeId id);

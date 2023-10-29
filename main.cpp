@@ -24,7 +24,18 @@ int main(int argc, char** argv){
     g.outer_vertex_scan();
     std::cout << std::endl;
 
+    std::cout << "p edge " << g.num_nodes() << " " << g.matching_size << std::endl;
     for(auto const& node: g.nodes){
-        std::cout << "matching_neighbor(" << node.id << ") = " << node.matching_neighbor << std::endl;
+        if(node.matching_neighbor != node.id){
+            if (g.nodes[node.matching_neighbor].matching_neighbor != node.id){
+                std::cerr << "node " << node.id + 1 << " has matching neighbor " << node.matching_neighbor + 1<< ", "
+                    << "but " << node.matching_neighbor + 1 << " has matching neighbor " << g.nodes[node
+                    .matching_neighbor].matching_neighbor + 1<< std::endl;
+            }
+        }
+        if(node.matching_neighbor > node.id){
+            std::cout << "e " << node.id + 1 << " " << node.matching_neighbor + 1<< "\n";
+        }
     }
+    std::cout << "c matching size: " << g.matching_size << std::endl;
 }

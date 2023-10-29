@@ -125,7 +125,7 @@ void Graph::augment_matching(Graph::NodeId x_id, Graph::NodeId y_id) {
         node.scanned = false;
     }
     matching_size += 1;
-    std::cout << "Matching Size = " << matching_size << std::endl;
+    std::cout << "\rMatching Size = " << matching_size << std::flush;
 }
 
 std::vector<Graph::NodeId> Graph::get_path(Graph::NodeId node) {
@@ -220,7 +220,16 @@ void Graph::add_nodes(Graph::NodeId num_nodes) {
 }
 
 void Graph::greedy_matching() {
-    for (auto &node: nodes) {
+    std::vector<NodeId> node_ids;
+    for(NodeId i = 0; i < num_nodes(); i++){
+        node_ids.push_back(i);
+    }
+    std::ranges::sort(node_ids, [&](NodeId a, NodeId b){return nodes[a].neighbors.size() < nodes[b].neighbors.size();});
+    for (auto node_id: node_ids) {
+        auto& node = nodes[node_id];
+        std::ranges::sort(node.neighbors, [&](NodeId a, NodeId b){return nodes[a].neighbors.size() < nodes[b].neighbors.size();});
+
+        assert(node_id == node.id);
         if (node.matching_neighbor != node.id) { continue; }
         for (auto neighbor_id: node.neighbors) {
             if (matching_neighbor(neighbor_id) == neighbor_id) {
@@ -231,4 +240,16 @@ void Graph::greedy_matching() {
             }
         }
     }
+}
+
+bool Graph::is_matching_legal() const {
+    for(auto const& node: nodes){
+        if(nodes[node.matching_neighbor].matching_neighbor != node.id){
+            std::cerr <<  "node " << node.id << " has matching neighbor " << node.matching_neighbor<< ", "
+                          << "but " << node.matching_neighbor<< " has matching neighbor " << nodes[node
+                    .matching_neighbor].matching_neighbor<< std::endl;
+            return false;
+        }
+    }
+    return true;
 }
