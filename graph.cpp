@@ -81,12 +81,12 @@ Graph::NodeId Graph::find_path_root(Graph::NodeId node) {
 
 void Graph::augment_matching(Graph::NodeId x_id, Graph::NodeId y_id) {
     auto const x_path = get_path(x_id);
+    auto const y_path = get_path(y_id);
     for (size_t i = 1; i < x_path.size(); i += 2) {
         auto v_id = x_path[i];
-        mu(phi(v_id)) = v_id;
-        mu(v_id) = phi(v_id);
+        matching_neighbor(forest_neighbor(v_id)) = v_id;
+        matching_neighbor(v_id) = forest_neighbor(v_id);
     }
-    auto const y_path = get_path(y_id);
     for (size_t i = 1; i < y_path.size(); i += 2) {
         auto v_id = y_path[i];
         matching_neighbor(forest_neighbor(v_id)) = v_id;
