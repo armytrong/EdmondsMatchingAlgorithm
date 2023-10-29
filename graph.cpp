@@ -8,19 +8,21 @@
 #include <iostream>
 
 void Graph::outer_vertex_scan() {
-    while (auto const node_id = find_unscanned_outer_vertex()) {
-        neighbor_search(node_id.value());
-        nodes[node_id.value()].scanned = true;
+    std::vector<NodeId> node_ids;
+    for(NodeId i = 0; i < num_nodes(); i++){
+        node_ids.push_back(i);
     }
-}
-
-std::optional<Graph::NodeId> Graph::find_unscanned_outer_vertex() {
-    for (Node const &node: nodes) {
-        if (is_node_outer(node.id) and not node.scanned) {
-            return node.id;
+    bool loop = true;
+    while(loop){
+        loop = false;
+        for(auto node_id : node_ids){
+            if(not is_node_outer(node_id) or nodes[node_id].scanned){continue;}
+            loop = true;
+            neighbor_search(node_id);
+            nodes[node_id].scanned = true;
         }
     }
-    return std::nullopt;
+    std::cout << std::endl;
 }
 
 void Graph::neighbor_search(Graph::NodeId x_id) {
@@ -82,6 +84,16 @@ Graph::NodeId Graph::find_path_root(Graph::NodeId node) {
 void Graph::augment_matching(Graph::NodeId x_id, Graph::NodeId y_id) {
     auto const x_path = get_path(x_id);
     auto const y_path = get_path(y_id);
+//    NodeId v = matching_neighbor(x_id);
+//    bool loop = v != x_id;
+//    while (loop) {
+//        NodeId v_next = matching_neighbor(forest_neighbor(v));
+//        assert(is_node_inner(v));
+//        if (forest_neighbor(v) == v_next) { loop = false; }
+//        matching_neighbor(forest_neighbor(v)) = v;
+//        matching_neighbor(v) = forest_neighbor(v);
+//        v = v_next;
+//    }
     for (size_t i = 1; i < x_path.size(); i += 2) {
         auto v_id = x_path[i];
         matching_neighbor(forest_neighbor(v_id)) = v_id;

@@ -44,8 +44,6 @@ private:
     [[nodiscard]] bool is_node_inner(NodeId x) const;
     [[nodiscard]] bool is_node_out_of_forest(NodeId x) const;
 
-    std::optional<NodeId> find_unscanned_outer_vertex();
-
     NodeId find_path_root(NodeId node);
     std::vector<NodeId> get_path(NodeId node);
 
