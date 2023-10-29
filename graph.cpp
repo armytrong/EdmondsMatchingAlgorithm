@@ -27,7 +27,10 @@ void Graph::outer_vertex_scan() {
 
 void Graph::neighbor_search(Graph::NodeId x_id) {
     for (auto y_id: nodes[x_id].neighbors) {
-        if (not(is_node_out_of_forest(y_id) or (is_node_outer(y_id) and blossom_root(y_id) != blossom_root(x_id)))) {
+        if (not(
+            is_node_out_of_forest(y_id) or
+            (is_node_outer(y_id) and find_blossom_root(y_id) != find_blossom_root(x_id))
+        )) {
             continue;
         }
         if (is_node_out_of_forest(y_id)) {
@@ -52,7 +55,17 @@ Graph::NodeId Graph::forest_neighbor(Graph::NodeId id) const { return nodes[id].
 
 Graph::NodeId &Graph::blossom_root(NodeId id) { return nodes[id].blossom_root; }
 
-Graph::NodeId Graph::blossom_root(Graph::NodeId id) const { return nodes[id].blossom_root; }
+Graph::NodeId Graph::find_blossom_root(NodeId node)  {
+    std::vector<NodeId> found_nodes;
+    while(blossom_root(node) != node){
+        found_nodes.push_back(node);
+        node = blossom_root(node);
+    }
+    for(auto other_node : found_nodes){
+        blossom_root(other_node) = node;
+    }
+    return node;
+}
 
 bool Graph::is_node_outer(Graph::NodeId x) const {
     return (matching_neighbor(x) == x) or
@@ -150,29 +163,31 @@ void Graph::shrink_blossom(Graph::NodeId x_id, Graph::NodeId y_id) {
     assert(optional_r_id);
     auto const r_id = optional_r_id.value();
 
-    for (size_t i = 1; i < x_path.size(); i += 2) {
-        auto const v_id = x_path[i];
-        if (blossom_root(forest_neighbor(v_id)) != r_id) {
-            forest_neighbor(forest_neighbor(v_id)) = v_id;
+    for (auto v_it = x_path.begin(); v_it < x_path.end(); v_it++) {
+        if(*v_it == r_id){ break; }
+        v_it++;
+        if (find_blossom_root(forest_neighbor(*v_it)) != r_id) {
+            forest_neighbor(forest_neighbor(*v_it)) = *v_it;
         }
-        if (v_id == r_id) { break; }
+        if (*v_it == r_id) { break; }
     }
-    for (size_t i = 1; i < y_path.size(); i += 2) {
-        auto const v_id = y_path[i];
-        if (blossom_root(forest_neighbor(v_id)) != r_id) {
-            forest_neighbor(forest_neighbor(v_id)) = v_id;
+    for (auto v_it = y_path.begin(); v_it < y_path.end(); v_it++) {
+        if(*v_it == r_id){ break; }
+        v_it++;
+        if (find_blossom_root(forest_neighbor(*v_it)) != r_id){
+            forest_neighbor(forest_neighbor(*v_it)) = *v_it;
         }
-        if (v_id == r_id) { break; }
+        if (*v_it == r_id) { break; }
     }
-    if (blossom_root(x_id) != r_id) { forest_neighbor(x_id) = y_id; }
-    if (blossom_root(y_id) != r_id) { forest_neighbor(y_id) = x_id; }
-    for (auto const node_id: x_path) {
-        blossom_root(node_id) = r_id;
-        if (node_id == r_id) { break; }
+    if (find_blossom_root(x_id) != r_id) { forest_neighbor(x_id) = y_id; }
+    if (find_blossom_root(y_id) != r_id) { forest_neighbor(y_id) = x_id; }
+    for (auto const node : x_path) {
+        blossom_root(node) = r_id;
+        if (node == r_id) { break; }
     }
-    for (auto const node_id: y_path) {
-        blossom_root(node_id) = r_id;
-        if (node_id == r_id) { break; }
+    for (auto const node : y_path) {
+        blossom_root(node) = r_id;
+        if (node == r_id) { break; }
     }
 }
 

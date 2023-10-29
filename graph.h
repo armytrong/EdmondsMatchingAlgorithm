@@ -35,7 +35,8 @@ private:
     NodeId& blossom_root(NodeId id);
     [[nodiscard]] NodeId matching_neighbor(NodeId id) const;
     [[nodiscard]] NodeId forest_neighbor(NodeId id) const;
-    [[nodiscard]] NodeId blossom_root(NodeId id) const;
+    [[nodiscard]] NodeId find_blossom_root(NodeId node) ;
+
     void neighbor_search(NodeId x_id);
     void augment_matching(NodeId x_id, NodeId y_id);
     void shrink_blossom(NodeId x_id, NodeId y_id);
