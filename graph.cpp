@@ -147,13 +147,17 @@ std::vector<Graph::NodeId> Graph::get_path(Graph::NodeId node) {
 
 std::optional<Graph::NodeId>
 Graph::get_first_path_intersection(const std::vector<NodeId> &path_1, const std::vector<NodeId> &path_2) {
-    for (auto const node_id: path_1) {
-        if (blossom_root(node_id) != node_id) { continue; }
-        if (std::ranges::count(path_2, node_id)) {
-            return node_id;
+    auto path_1_it = path_1.rbegin();
+    auto path_2_it = path_2.rbegin();
+    std::optional<NodeId> last_candidate;
+    while(*path_1_it == *path_2_it and path_1_it < path_1.rend() and path_2_it < path_2.rend()){
+        if(find_blossom_root(*path_1_it) == *path_1_it){
+            last_candidate = *path_1_it;
         }
+        path_1_it++;
+        path_2_it++;
     }
-    return std::nullopt;
+    return last_candidate;
 }
 
 void Graph::shrink_blossom(Graph::NodeId x_id, Graph::NodeId y_id) {
