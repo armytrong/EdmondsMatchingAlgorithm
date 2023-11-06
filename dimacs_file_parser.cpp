@@ -4,6 +4,7 @@
 
 #include <cassert>
 #include <sstream>
+#include <iostream>
 #include "dimacs_file_parser.h"
 
 Graph DIMACSFileParser::create_graph(const std::string &filename) {
@@ -49,4 +50,22 @@ Graph DIMACSFileParser::create_graph(std::istream &file) {
         } 
     }
     return result;
+}
+
+void DIMACSFileParser::output_matching(const Graph &graph) {
+
+    std::cout << "p edge " << graph.num_nodes() << " " << graph.matching_size << std::endl;
+    for(auto const& node: graph.nodes){
+        if(node.matching_neighbor != node.id){
+            if (graph.nodes[node.matching_neighbor].matching_neighbor != node.id){
+                std::cerr << "node " << node.id + 1 << " has matching neighbor " << node.matching_neighbor + 1<< ", "
+                          << "but " << node.matching_neighbor + 1 << " has matching neighbor " << graph.nodes[node
+                        .matching_neighbor].matching_neighbor + 1<< std::endl;
+            }
+        }
+        if(node.matching_neighbor > node.id){
+            std::cout << "e " << node.id + 1 << " " << node.matching_neighbor + 1<< "\n";
+        }
+    }
+    std::cout << "c matching size: " << graph.matching_size << std::endl;
 }

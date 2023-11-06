@@ -7,6 +7,53 @@
 #include <cassert>
 #include <iostream>
 
+void Graph::add_edge(Graph::NodeId a, Graph::NodeId b) {
+    if (not std::ranges::count(nodes[a].neighbors, b)) {
+        nodes[a].neighbors.push_back(b);
+    }
+    if (not std::ranges::count(nodes[b].neighbors, a)) {
+        nodes[b].neighbors.push_back(a);
+    }
+}
+
+void Graph::add_nodes(Graph::NodeId num_nodes) {
+    for (NodeId i = 0; i < num_nodes; i++) {
+        nodes.emplace_back(nodes.size());
+    }
+}
+
+Graph::NodeId &Graph::matching_neighbor(NodeId id) {
+    return nodes[id].matching_neighbor;
+}
+
+Graph::NodeId Graph::matching_neighbor(Graph::NodeId id) const {
+    return nodes[id].matching_neighbor;
+}
+
+Graph::NodeId &Graph::forest_neighbor(NodeId id) {
+    return nodes[id].forest_neighbor;
+}
+
+Graph::NodeId Graph::forest_neighbor(Graph::NodeId id) const {
+    return nodes[id].forest_neighbor;
+}
+
+Graph::NodeId &Graph::blossom_root(NodeId id) {
+    return nodes[id].blossom_root;
+}
+
+Graph::NodeId Graph::find_blossom_root(NodeId node)  {
+    std::vector<NodeId> found_nodes;
+    while(blossom_root(node) != node){
+        found_nodes.push_back(node);
+        node = blossom_root(node);
+    }
+    for(auto other_node : found_nodes){
+        blossom_root(other_node) = node;
+    }
+    return node;
+}
+
 void Graph::outer_vertex_scan() {
     std::vector<NodeId> node_ids;
     for(NodeId i = 0; i < num_nodes(); i++){
@@ -16,10 +63,10 @@ void Graph::outer_vertex_scan() {
     while(loop){
         loop = false;
         for(auto node_id : node_ids){
-            if(not is_node_outer(node_id) or nodes[node_id].scanned){continue;}
+            if(not is_node_outer(node_id) or nodes[node_id].scanned == matching_size + 1){continue;}
             loop = true;
             neighbor_search(node_id);
-            nodes[node_id].scanned = true;
+            nodes[node_id].scanned = matching_size + 1;
         }
     }
     std::cout << std::endl;
@@ -34,8 +81,7 @@ void Graph::neighbor_search(Graph::NodeId x_id) {
             continue;
         }
         if (is_node_out_of_forest(y_id)) {
-            // grow forest
-            forest_neighbor(y_id) = x_id;
+            grow_forest(x_id, y_id);
         } else if (get_path(x_id).back() != get_path(y_id).back()) {
             augment_matching(x_id, y_id);
             break;
@@ -45,28 +91,13 @@ void Graph::neighbor_search(Graph::NodeId x_id) {
     }
 }
 
-Graph::NodeId &Graph::matching_neighbor(NodeId id) { return nodes[id].matching_neighbor; }
-
-Graph::NodeId Graph::matching_neighbor(Graph::NodeId id) const { return nodes[id].matching_neighbor; }
-
-Graph::NodeId &Graph::forest_neighbor(NodeId id) { return nodes[id].forest_neighbor; }
-
-Graph::NodeId Graph::forest_neighbor(Graph::NodeId id) const { return nodes[id].forest_neighbor; }
-
-Graph::NodeId &Graph::blossom_root(NodeId id) { return nodes[id].blossom_root; }
-
-Graph::NodeId Graph::find_blossom_root(NodeId node)  {
-    std::vector<NodeId> found_nodes;
-    while(blossom_root(node) != node){
-        found_nodes.push_back(node);
-        node = blossom_root(node);
-    }
-    for(auto other_node : found_nodes){
-        blossom_root(other_node) = node;
-    }
-    return node;
+void Graph::grow_forest(NodeId x_id, NodeId y_id) {
+    forest_neighbor(y_id) = x_id;
+    tree_root(y_id) = tree_root(x_id);
+    tree_root(matching_neighbor(y_id)) = tree_root(x_id);
+    tree_nodes(tree_root(x_id)).push_back(y_id);
+    tree_nodes(tree_root(x_id)).push_back(matching_neighbor(y_id));
 }
-
 bool Graph::is_node_outer(Graph::NodeId x) const {
     return (matching_neighbor(x) == x) or
            (forest_neighbor(matching_neighbor(x)) != matching_neighbor(x));
@@ -83,30 +114,9 @@ bool Graph::is_node_out_of_forest(Graph::NodeId x) const {
            (forest_neighbor(matching_neighbor(x)) == matching_neighbor(x));
 }
 
-Graph::NodeId Graph::find_path_root(Graph::NodeId node) {
-    return get_path(node).back();
-    auto previous_node = node;
-    node = matching_neighbor(node);
-    while (node != previous_node) {
-        previous_node = node;
-        node = matching_neighbor(forest_neighbor(node));
-    }
-    return node;
-}
-
 void Graph::augment_matching(Graph::NodeId x_id, Graph::NodeId y_id) {
     auto const x_path = get_path(x_id);
     auto const y_path = get_path(y_id);
-//    NodeId v = matching_neighbor(x_id);
-//    bool loop = v != x_id;
-//    while (loop) {
-//        NodeId v_next = matching_neighbor(forest_neighbor(v));
-//        assert(is_node_inner(v));
-//        if (forest_neighbor(v) == v_next) { loop = false; }
-//        matching_neighbor(forest_neighbor(v)) = v;
-//        matching_neighbor(v) = forest_neighbor(v);
-//        v = v_next;
-//    }
     for (size_t i = 1; i < x_path.size(); i += 2) {
         auto v_id = x_path[i];
         matching_neighbor(forest_neighbor(v_id)) = v_id;
@@ -119,45 +129,10 @@ void Graph::augment_matching(Graph::NodeId x_id, Graph::NodeId y_id) {
     }
     matching_neighbor(x_id) = y_id;
     matching_neighbor(y_id) = x_id;
-    for (auto &node: nodes) {
-        node.forest_neighbor = node.id;
-        node.blossom_root = node.id;
-        node.scanned = false;
-    }
+    reset_tree(x_id);
+    reset_tree(y_id);
     matching_size += 1;
     std::cout << "\rMatching Size = " << matching_size << std::flush;
-}
-
-std::vector<Graph::NodeId> Graph::get_path(Graph::NodeId node) {
-    std::vector<NodeId> result{node};
-    while (true) {
-        auto const mu_id = matching_neighbor(result.back());
-        if (mu_id == result.back()) {
-            return result;
-        }
-        result.push_back(mu_id);
-
-        auto const phi_id = forest_neighbor(mu_id);
-        if (phi_id == mu_id) {
-            return result;
-        }
-        result.push_back(phi_id);
-    }
-}
-
-std::optional<Graph::NodeId>
-Graph::get_first_path_intersection(const std::vector<NodeId> &path_1, const std::vector<NodeId> &path_2) {
-    auto path_1_it = path_1.rbegin();
-    auto path_2_it = path_2.rbegin();
-    std::optional<NodeId> last_candidate;
-    while(*path_1_it == *path_2_it and path_1_it < path_1.rend() and path_2_it < path_2.rend()){
-        if(find_blossom_root(*path_1_it) == *path_1_it){
-            last_candidate = *path_1_it;
-        }
-        path_1_it++;
-        path_2_it++;
-    }
-    return last_candidate;
 }
 
 void Graph::shrink_blossom(Graph::NodeId x_id, Graph::NodeId y_id) {
@@ -195,29 +170,50 @@ void Graph::shrink_blossom(Graph::NodeId x_id, Graph::NodeId y_id) {
     }
 }
 
-void Graph::add_node(std::vector<NodeId> neighbors) {
-    Node node{nodes.size()};
-    node.neighbors = std::move(neighbors);
-    for (auto const neighbor: node.neighbors) {
-        nodes[neighbor].neighbors.push_back(node.id);
+void Graph::reset_tree(NodeId node_id) {
+    auto const root = tree_root(node_id);
+    for (auto tree_node: tree_nodes(root)){
+        forest_neighbor(tree_node) = tree_node;
+        blossom_root(tree_node) = tree_node;
+        nodes[tree_node].scanned = 0;
+        tree_root(tree_node) = tree_node;
     }
-    nodes.push_back(node);
+    tree_nodes(root) = {root};
 }
 
-void Graph::add_edge(Graph::NodeId a, Graph::NodeId b) {
-    if (not std::ranges::count(nodes[a].neighbors, b)) {
-        nodes[a].neighbors.push_back(b);
-    }
-    if (not std::ranges::count(nodes[b].neighbors, a)) {
-        nodes[b].neighbors.push_back(a);
+std::vector<Graph::NodeId> Graph::get_path(Graph::NodeId node) {
+    std::vector<NodeId> result{node};
+    while (true) {
+        auto const mu_id = matching_neighbor(result.back());
+        if (mu_id == result.back()) {
+            return result;
+        }
+        result.push_back(mu_id);
+
+        auto const phi_id = forest_neighbor(mu_id);
+        if (phi_id == mu_id) {
+            return result;
+        }
+        result.push_back(phi_id);
     }
 }
 
-void Graph::add_nodes(Graph::NodeId num_nodes) {
-    for (NodeId i = 0; i < num_nodes; i++) {
-        nodes.emplace_back(nodes.size());
+std::optional<Graph::NodeId>
+Graph::get_first_path_intersection(const std::vector<NodeId> &path_1, const std::vector<NodeId> &path_2) {
+    auto path_1_it = path_1.rbegin();
+    auto path_2_it = path_2.rbegin();
+    std::optional<NodeId> last_candidate;
+    while(*path_1_it == *path_2_it and path_1_it < path_1.rend() and path_2_it < path_2.rend()){
+        if(find_blossom_root(*path_1_it) == *path_1_it){
+            last_candidate = *path_1_it;
+        }
+        path_1_it++;
+        path_2_it++;
     }
+    return last_candidate;
 }
+
+
 
 void Graph::greedy_matching() {
     std::vector<NodeId> node_ids;
@@ -253,3 +249,15 @@ bool Graph::is_matching_legal() const {
     }
     return true;
 }
+
+std::size_t Graph::num_nodes() const {return nodes.size();}
+
+Graph::Node::Node(Graph::NodeId id) :
+    id(id),
+    forest_neighbor(id),
+    matching_neighbor(id),
+    blossom_root(id),
+    scanned(0),
+    nodes_in_tree{id},
+    tree_root(id)
+{}

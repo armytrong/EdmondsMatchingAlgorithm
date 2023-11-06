@@ -12,6 +12,8 @@ class DIMACSFileParser {
 public:
     static Graph create_graph(std::string const& filename);
     static Graph create_graph(std::istream & file);
+
+    static void output_matching(Graph const& graph);
 };
 
 
