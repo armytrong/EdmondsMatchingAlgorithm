@@ -41,7 +41,6 @@ public:
 private:
     // Methods for querying nodes
     NodeId& tree_root(NodeId id) { return nodes[id].tree_root;}
-    std::vector<NodeId>& tree_nodes(NodeId id) { return nodes[id].nodes_in_tree; }
 
     NodeId& matching_neighbor(NodeId id);
     NodeId& forest_neighbor(NodeId id);
@@ -70,6 +69,8 @@ private:
         std::vector<NodeId> const& path_1,
         std::vector<NodeId> const& path_2
     );
+
+    std::vector<NodeId>& tree_nodes(NodeId id) { return nodes[id].nodes_in_tree; }
 public:
     unsigned matching_size = 0;
     std::vector<Node> nodes;
