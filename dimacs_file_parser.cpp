@@ -35,7 +35,10 @@ std::optional<Graph> DIMACSFileParser::create_graph(std::istream &file) {
                 break;
             case 'p': // Graph header
                 ss >> edge_string;
-                assert(edge_string == "edge");
+                if(edge_string != "edge"){
+                    std::cerr << "WARNING: input file does not follow sepcifications, "
+                              << edge_string << " != 'edge'!." << std::endl;
+                }
                 ss >> num_nodes >> num_edges;
                 result.add_nodes(num_nodes);
                 break;
