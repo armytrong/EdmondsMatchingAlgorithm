@@ -8,12 +8,11 @@
 #include<string>
 #include<fstream>
 #include "graph.h"
-class DIMACSFileParser {
-public:
-    static Graph create_graph(std::string const& filename);
-    static Graph create_graph(std::istream & file);
+namespace DIMACSFileParser {
+    std::optional<Graph> create_graph(std::string const& filename);
+    std::optional<Graph> create_graph(std::istream & file);
 
-    static void output_matching(Graph const& graph);
+    void output_matching(Graph const& graph);
 };
 
 

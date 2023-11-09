@@ -13,12 +13,11 @@ int main(int argc, char** argv){
         return 1;
     }
     std::string filename = argv[1];
-    std::ifstream file(filename);
-    if(not file){
-        std::cerr << "Could not open " << filename << std::endl;
+    auto optional_graph = DIMACSFileParser::create_graph(filename);
+    if(not optional_graph){
         return 1;
     }
-    auto graph = DIMACSFileParser::create_graph(file);
+    auto graph = optional_graph.value();
 
     graph.greedy_matching();
     graph.outer_vertex_scan();

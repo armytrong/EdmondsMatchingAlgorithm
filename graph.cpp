@@ -241,9 +241,10 @@ void Graph::greedy_matching() {
 bool Graph::is_matching_legal() const {
     for(auto const& node: nodes){
         if(nodes[node.matching_neighbor].matching_neighbor != node.id){
-            std::cerr <<  "node " << node.id << " has matching neighbor " << node.matching_neighbor<< ", "
-                          << "but " << node.matching_neighbor<< " has matching neighbor " << nodes[node
-                    .matching_neighbor].matching_neighbor<< std::endl;
+            std::cerr << "node " << node.id
+                      << " has matching neighbor " << node.matching_neighbor << ", "
+                      << "but " << node.matching_neighbor << " has matching neighbor "
+                      << nodes[node.matching_neighbor].matching_neighbor << std::endl;
             return false;
         }
     }
