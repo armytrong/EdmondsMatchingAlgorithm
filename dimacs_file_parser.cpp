@@ -48,12 +48,13 @@ std::optional<Graph> DIMACSFileParser::create_graph(std::istream &file) {
                 }
                 unsigned node_1, node_2;
                 ss >> node_1 >> node_2; // Nodes in DIMACS are indexed starting at one. This program is 0 indexed.
-                if(node_1 >= result.num_nodes()){
+                if(node_1 - 1 >= result.num_nodes()){
                     std::cerr << "ERROR: Node " << node_1 << " is not in the graph. Aborting." << std::endl;
                     return std::nullopt;
                 }
-                if(node_2 >= result.num_nodes()){
+                if(node_2 - 1 >= result.num_nodes()){
                     std::cerr << "ERROR: Node " << node_2 << " is not in the graph. Aborting." << std::endl;
+                    return std::nullopt;
                 }
                 result.add_edge(node_1 - 1, node_2 - 1);
                 found_edges++;
@@ -62,9 +63,9 @@ std::optional<Graph> DIMACSFileParser::create_graph(std::istream &file) {
                 std::cerr << "WARNING incorrect file syntax: '" << line_type[0] << "' is not a recognized line header. "
                           << "Continuing anyway." << std::endl;
         }
-        if(found_edges < num_edges){
-            std::cerr << "WARNING: Less edges found than specified. Continuing anyway." << std::endl;
-        }
+    }
+    if(found_edges < num_edges){
+        std::cerr << "WARNING: Less edges found than specified. Continuing anyway." << std::endl;
     }
     return result;
 }
